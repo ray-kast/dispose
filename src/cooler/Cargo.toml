@@ -1,0 +1,31 @@
+[package]
+name = "cooler"
+description = "A tool for accurately picking colors."
+version = "0.1.0"
+authors = ["rookie1024 <rookie1286@gmail.com>"]
+edition = "2018"
+license = "AGPL-3.0-or-greater"
+
+[[bin]]
+name = "cooler"
+path = "main.rs"
+
+[dependencies]
+gfx-hal = "0.5.2"
+imgui = "0.4.0"
+
+dispose = { version = "0.1.0", path = "../dispose" }
+dispose-derive = { version = "0.1.0", path = "../dispose-derive" }
+
+[target.'cfg(target_os = "macos")'.dependencies.backend]
+package = "gfx-backend-metal"
+version = "0.5.4"
+
+[target.'cfg(windows)'.dependencies.backend]
+package = "gfx-backend-dx12"
+version = "0.5.7"
+
+[target.'cfg(all(unix, not(target_os = "macos")))'.dependencies.backend]
+package = "gfx-backend-vulkan"
+version = "0.5.8"
+features = ["x11", "xcb"]

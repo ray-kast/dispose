@@ -1,0 +1,14 @@
+[package]
+name = "dispose"
+description = "A simple wrapper for values that must be consumed on drop."
+version = "0.1.0"
+authors = ["rookie1024 <rookie1286@gmail.com>"]
+edition = "2018"
+license = "AGPL-3.0-or-greater"
+
+[lib]
+name = "dispose"
+path = "lib.rs"
+
+[dependencies]
+dispose-derive = { version = "0.1.0", path = "../dispose-derive" }

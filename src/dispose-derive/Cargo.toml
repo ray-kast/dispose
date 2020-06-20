@@ -1,0 +1,14 @@
+[package]
+name = "dispose-derive"
+description = "Derive macro for the dispose crate."
+version = "0.1.0"
+authors = ["rookie1024 <rookie1286@gmail.com>"]
+edition = "2018"
+license = "AGPL-3.0-or-greater"
+
+[lib]
+name = "dispose_derive"
+proc-macro = true
+path = "lib.rs"
+
+[dependencies]
