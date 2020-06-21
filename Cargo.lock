@@ -80,7 +80,6 @@ name = "cooler"
 version = "0.1.0"
 dependencies = [
  "dispose",
- "dispose-derive",
  "gfx-backend-dx12",
  "gfx-backend-metal",
  "gfx-backend-vulkan",
@@ -135,14 +134,22 @@ dependencies = [
 
 [[package]]
 name = "dispose"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "dispose-derive",
 ]
 
 [[package]]
 name = "dispose-derive"
-version = "0.1.0"
+version = "0.1.2"
+dependencies = [
+ "dispose",
+ "gfx-backend-empty",
+ "gfx-hal",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "foreign-types"
@@ -195,6 +202,16 @@ dependencies = [
  "smallvec",
  "spirv_cross",
  "winapi",
+]
+
+[[package]]
+name = "gfx-backend-empty"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b67bd2d7bc022b257ddbdabc5fa3b10c29c292372c3409f2b6a6e3f4e11cdb85"
+dependencies = [
+ "gfx-hal",
+ "raw-window-handle",
 ]
 
 [[package]]

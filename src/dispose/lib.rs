@@ -1,4 +1,5 @@
-#![warn(missing_docs)]
+#![warn(missing_docs, clippy::all, clippy::pedantic, clippy::cargo)]
+#![deny(intra_doc_link_resolution_failure, missing_debug_implementations)]
 
 //! A small crate for handling resources that must be consumed at the end of their lifetime.
 //!
@@ -11,9 +12,12 @@
 //! As a bonus, this crate makes it easy to defer the execution of an `FnOnce` closure to the end
 //! of a scope, which can be done using the [`defer`] function.
 //!
+//! **NOTE:** The `Dispose` trait does _not_ provide a `Drop` impl by itself.  For that, a value
+//! implementing `Dispose` must be wrapped in a [`Disposable`] struct.
+//!
 //! # Examples
 //!
-//! ```rust
+//! ```
 //! use dispose::{Dispose, Disposable};
 //!
 //! struct MyStruct;
@@ -27,160 +31,62 @@
 //! } // prints "Goodbye, world!"
 //! ```
 //!
+//! As a design consideration, values implementing `Dispose` should _always_ be returned from
+//! functions within `Disposable` or any other wrapper properly implementing `Drop`.  `Disposable`
+//! is recommended as it contains an unsafe [`leak`] function to retrieve the inner value, if
+//! necessary.
+//!
+//! ```
+//! use dispose::{Dispose, Disposable};
+//!
+//! mod secrets {
+//! #   use dispose::{Dispose, Disposable};
+//!
+//!     pub struct Secrets {
+//!         launch_codes: u32,
+//!     }
+//!
+//!     impl Secrets {
+//!         pub fn new(launch_codes: u32) -> Disposable<Self> {
+//!             Self { launch_codes }.into()
+//!         }
+//!     }
+//!
+//!     impl Dispose for Secrets {
+//!         fn dispose(mut self) { self.launch_codes = 0x0; } // Nice try, hackers!
+//!     }
+//! }
+//!
+//! fn main() {
+//!     let secret = secrets::Secrets::new(0xDEADBEEF);
+//! } // secret is properly disposed at the end of the scope
+//!
+//! fn BAD() {
+//!     let secret = secrets::Secrets::new(0o1337);
+//!
+//!     let mwahaha = unsafe { Disposable::leak(secret) };
+//! } // .dispose() was not called - data has been leaked!
+//! ```
+//!
+//! (My lawyers have advised me to note that the above example is not cryptographically secure.
+//! Please do not clean up secure memory by simply setting it to zero.)
+//!
 //! [`defer`]: ./fn.defer.html
+//! [`Disposable`]: ./struct.Disposable.html
+//! [`leak`]: ./struct.Disposable.html#tymethod.leak
 
-use std::{
-    borrow::{Borrow, BorrowMut},
-    mem,
-    mem::ManuallyDrop,
-    ops::{Deref, DerefMut},
-};
+mod defer;
+mod disposable;
+mod dispose;
+mod dispose_with;
 
+pub use crate::{defer::*, disposable::*, dispose::*, dispose_with::*};
 pub use dispose_derive::*;
 
-/// A trait representing a standard "dispose" method for consuming an object at the end of its
-/// scope.
-///
-/// The typical use case of this trait is for encapsulating objects in [`Disposable`] wrappers,
-/// which will automatically call [`dispose`] on drop, but it is perfectly acceptable to call
-/// [`dispose`] by itself.
-///
-/// See [this page][examples] for example usage.
-///
-/// [`Disposable`]: ./struct.Disposable.html
-/// [`dispose`]: ./trait.Dispose.html#tymethod.dispose
-/// [examples]: ./index.html#examples
-pub trait Dispose {
-    /// Consume self and deinitialize its contents.
-    fn dispose(self);
+/// Contains all the basic traits and derive macros exported by this crate.
+pub mod prelude {
+    #[doc(no_inline)]
+    pub use super::{Dispose, DisposeWith};
+    #[doc(no_inline)]
+    pub use dispose_derive::*;
 }
-
-/// Wrapper for values implementing [`Dispose`] that provides a `Drop` implementation.
-///
-/// This struct will automatically consume its contents on drop using the provided [`Dispose`]
-/// implementation.
-///
-/// See [this page][examples] for example usage.
-///
-/// [`Dispose`]: ./trait.Dispose.html
-/// [examples]: ./index.html#examples
-pub struct Disposable<T: Dispose>(ManuallyDrop<T>);
-
-impl<T: Dispose> Disposable<T> {
-    /// Construct a new `Disposable` instance, wrapping around `val`.
-    pub fn new(val: T) -> Self { Self(ManuallyDrop::new(val)) }
-
-    /// Consume the wrapper, producing the contained value.
-    ///
-    /// **NOTE:** It is up to the user to ensure the value gets consumed once it is leaked.
-    pub unsafe fn leak(mut this: Self) -> T {
-        let inner = ManuallyDrop::take(&mut this.0);
-        mem::forget(this);
-        inner
-    }
-}
-
-impl<T: Dispose> From<T> for Disposable<T> {
-    fn from(val: T) -> Self { Self::new(val) }
-}
-
-impl<T: Dispose> Drop for Disposable<T> {
-    fn drop(&mut self) {
-        let disp = unsafe { ManuallyDrop::take(&mut self.0) };
-
-        disp.dispose();
-    }
-}
-
-impl<T: Dispose> AsRef<T> for Disposable<T> {
-    fn as_ref(&self) -> &T { &self.0 }
-}
-
-impl<T: Dispose> AsMut<T> for Disposable<T> {
-    fn as_mut(&mut self) -> &mut T { &mut self.0 }
-}
-
-impl<T: Dispose> Borrow<T> for Disposable<T> {
-    fn borrow(&self) -> &T { self.as_ref() }
-}
-
-impl<T: Dispose> BorrowMut<T> for Disposable<T> {
-    fn borrow_mut(&mut self) -> &mut T { self.as_mut() }
-}
-
-impl<T: Dispose> Deref for Disposable<T> {
-    type Target = T;
-
-    fn deref(&self) -> &T { self.as_ref() }
-}
-
-impl<T: Dispose> DerefMut for Disposable<T> {
-    fn deref_mut(&mut self) -> &mut T { self.as_mut() }
-}
-
-impl<F: FnOnce()> Dispose for F {
-    /// Run the closure, consuming it.
-    fn dispose(self) { self() }
-}
-
-/// A helper trait for objects that must be consumed with the help of another value.
-///
-/// If the method to consume a value is an associated function or requires additional arguments
-/// that cannot be determined at compile-time, this trait provides a simple way to implement
-/// Dispose for any container that has both the value to be disposed and any other values
-/// necessary, as demonstrated with [this implementation for pairs][(W, T)].
-///
-/// [(W, T)]: ./trait.Dispose.html#impl-Dispose-for-(W%2C%20T)
-pub trait DisposeWith<W> {
-    /// Dispose self, using the provided value.
-    fn dispose_with(self, with: W);
-}
-
-impl<W, T: DisposeWith<W>> Dispose for (W, T) {
-    /// Dispose `self.1`, passing `self.0` to `dispose_with`.
-    fn dispose(self) { self.1.dispose_with(self.0) }
-}
-
-impl<W, F: FnOnce(W)> DisposeWith<W> for F {
-    /// Run the closure with the provided argument, consuming the closure.
-    fn dispose_with(self, with: W) { self(with) }
-}
-
-/// Defer an action until the end of a lexical scope.
-///
-/// This function returns a value that calls the provided closure when dropped, resulting in
-/// functionality akin to `try...finally` blocks or Swift's `defer` blocks and Go's `defer func`.
-///
-/// # Examples
-///
-/// ```rust
-/// fn main() {
-///     let _d = defer(|| println!("Hello from defer()!"));
-///
-///     println!("Hello, world!");
-/// }
-///
-/// // This prints the following:
-/// // Hello, world!
-/// // Hello from defer()!
-/// ```
-///
-/// A more pertinent example would be the use of defer with the `?` operator:
-///
-/// ```rust
-/// fn try_me() -> Result<(), ()> {
-///     let _d = defer(|| println!("Cleaning up..."));
-///
-///     println!("Hello!");
-///
-///     let uh_oh = Err(())?; // Pretend this was a function that failed
-///
-///     println!("You can't see me: {:?}", uh_oh);
-/// }
-///
-/// try_me();
-///
-/// // This prints the following:
-/// // Hello!
-/// // Cleaning up...
-pub fn defer<F: FnOnce()>(f: F) -> Disposable<F> { f.into() }

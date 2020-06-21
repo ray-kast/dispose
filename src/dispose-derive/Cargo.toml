@@ -1,10 +1,19 @@
 [package]
 name = "dispose-derive"
-description = "Derive macro for the dispose crate."
-version = "0.1.0"
+version = "0.1.2"
 authors = ["rookie1024 <rookie1286@gmail.com>"]
 edition = "2018"
-license = "AGPL-3.0-or-greater"
+description = "Derive macro for the dispose crate."
+documentation = "https://docs.rs/dispose-derive/"
+# readme = TODO
+# homepage = TODO
+# repository = TODO
+license = "AGPL-3.0-or-later"
+# license-file =
+keywords = ["linear", "dispose", "resource", "drop", "derive"]
+categories = ["rust-patterns"]
+
+# TODO: make this no-std?
 
 [lib]
 name = "dispose_derive"
@@ -12,3 +21,12 @@ proc-macro = true
 path = "lib.rs"
 
 [dependencies]
+proc-macro2 = "1.0.18"
+quote = "1.0.7"
+syn = { version = "1.0.31", features = ["derive", "extra-traits", "fold", "full"] }
+
+[dev-dependencies]
+# Used in doctests:
+gfx-hal = "0.5.2"
+gfx-backend-empty = "0.5.0"
+dispose = { version = "=0.2.0", path = "../dispose" }

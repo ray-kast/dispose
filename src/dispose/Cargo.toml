@@ -1,10 +1,19 @@
 [package]
 name = "dispose"
-description = "A simple wrapper for values that must be consumed on drop."
-version = "0.1.0"
+version = "0.2.0"
 authors = ["rookie1024 <rookie1286@gmail.com>"]
 edition = "2018"
-license = "AGPL-3.0-or-greater"
+description = "A simple wrapper for values that must be consumed on drop."
+documentation = "https://docs.rs/dispose/"
+# readme = TODO
+# homepage = TODO
+# repository = TODO
+license = "AGPL-3.0-or-later"
+# license-file =
+keywords = ["linear", "dispose", "resource", "drop", "derive"]
+categories = ["rust-patterns"]
+
+# TODO: make this no-std?
 
 [lib]
 name = "dispose"

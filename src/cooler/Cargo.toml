@@ -1,10 +1,17 @@
 [package]
 name = "cooler"
-description = "A tool for accurately picking colors."
 version = "0.1.0"
 authors = ["rookie1024 <rookie1286@gmail.com>"]
 edition = "2018"
-license = "AGPL-3.0-or-greater"
+description = "A tool for accurately picking colors."
+# documentation = TODO
+# readme = TODO
+# homepage = TODO
+# repository = TODO
+license = "AGPL-3.0-or-later"
+# license-file =
+keywords = ["color", "swatch", "palette", "picker", "chooser"]
+categories = ["graphics", "multimedia"]
 
 [[bin]]
 name = "cooler"
@@ -14,8 +21,7 @@ path = "main.rs"
 gfx-hal = "0.5.2"
 imgui = "0.4.0"
 
-dispose = { version = "0.1.0", path = "../dispose" }
-dispose-derive = { version = "0.1.0", path = "../dispose-derive" }
+dispose = { version = "0.2.0", path = "../dispose" }
 
 [target.'cfg(target_os = "macos")'.dependencies.backend]
 package = "gfx-backend-metal"
