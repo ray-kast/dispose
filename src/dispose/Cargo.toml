@@ -1,13 +1,13 @@
 [package]
 name = "dispose"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["rookie1024 <rookie1286@gmail.com>"]
 edition = "2018"
 description = "A simple wrapper for values that must be consumed on drop."
 documentation = "https://docs.rs/dispose/"
 # readme = TODO
 # homepage = TODO
-# repository = TODO
+repository = "https://github.com/rookie1024/dispose"
 license = "AGPL-3.0-or-later"
 # license-file =
 keywords = ["linear", "dispose", "resource", "drop", "derive"]
@@ -20,4 +20,4 @@ name = "dispose"
 path = "lib.rs"
 
 [dependencies]
-dispose-derive = { version = "0.1.0", path = "../dispose-derive" }
+dispose-derive = { version = "0.2.0", path = "../dispose-derive" }

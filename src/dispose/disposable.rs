@@ -24,9 +24,9 @@ impl<T: Dispose> Disposable<T> {
     /// Consume the wrapper, producing the contained value.
     ///
     /// # Safety
-    /// 
+    ///
     /// It is up to the user to ensure the value does not fall out of scope without being consumed.
-    /// 
+    ///
     /// The value can be safely re-inserted into a `Disposable` using `Disposable::new` to restore
     /// safe drop behavior, and it is recommended that the value is held by some container which
     /// consumes it on drop at all times.  The intended use case for this function is transferring

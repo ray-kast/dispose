@@ -1,6 +1,5 @@
 #![warn(missing_docs, clippy::all, clippy::pedantic, clippy::cargo)]
-#![deny(intra_doc_link_resolution_failure, missing_debug_implementations)]
-#![feature(proc_macro_diagnostic)]
+#![deny(broken_intra_doc_links, missing_debug_implementations)]
 
 //! Derive macro for the `dispose` crate.
 //!
@@ -9,6 +8,7 @@
 
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::{Span, TokenStream};
+use proc_macro_error::{emit_error, proc_macro_error};
 use quote::quote_spanned;
 use syn::{
     parse_macro_input, spanned::Spanned, Data, DataEnum, DataStruct, DeriveInput, Field, Fields,
@@ -32,6 +32,20 @@ type Result<T, E = ()> = std::result::Result<T, E>;
 /// `Dispose` or `DisposeWith` resources.
 ///
 /// # The `#[dispose]` attribute
+///
+/// The `#[dispose]` attribute available to types deriving `Dispose` provides four options for
+/// decorating fields: `ignore`, `with`, `iter`, and `iter_with`.
+///
+/// - `#[dispose(ignore)]` is the simplest option.  It disables generating a `.dispose()` call for
+///   the field it decorates.
+/// - `#[dispose(with = <expr>)]` changes the `.dispose()` call to a `.dispose_with(...)` call that
+///   is provided with a value determined by `<expr>`.  `expr` can take one of two forms: `.memb`
+///   for a member access into `self`, or any other Rust expression, which will be token-pasted
+///   into the `dispose_with` call as-is.
+/// - `#[dispose(iter)]` changes the `.dispose()` call to `.dispose_iter()`, for types that
+///   implement `DisposeIterator` rather than `Dispose`.
+/// - `#[dispose(iter_with = <expr>)]` changes the `.dispose()` call to `.dispose_iter_with(...)`,
+///   behaving similarly to both `#[dispose(iter)]` and `#[dispose(with = <expr>)]`.
 ///
 /// # Examples
 ///
@@ -181,6 +195,7 @@ type Result<T, E = ()> = std::result::Result<T, E>;
 /// // Draw cool things with the buffers here...
 /// # let _ = (buf, bufs); // Silence any unused warnings.
 /// ```
+#[proc_macro_error]
 #[proc_macro_derive(Dispose, attributes(dispose))]
 pub fn derive_dispose(item: TokenStream1) -> TokenStream1 {
     match derive_dispose_impl(parse_macro_input!(item)) {
@@ -199,8 +214,8 @@ fn field_to_member(index: u32, field: &Field) -> Member {
     }
 }
 
-fn member_to_string(memb: Member) -> String {
-    match memb {
+fn member_to_string(member: Member) -> String {
+    match member {
         Member::Named(i) => i.to_string(),
         Member::Unnamed(i) => i.index.to_string(),
     }
@@ -212,9 +227,7 @@ fn derive_dispose_impl(input: DeriveInput) -> Result<TokenStream> {
 
     for attr in input.attrs {
         if attr.path.is_ident("dispose") {
-            span.unwrap()
-                .error("Unexpected #[dispose] attribute.")
-                .emit();
+            emit_error! { span.unwrap(), "Unexpected #[dispose] attribute." };
         }
     }
 
@@ -227,9 +240,7 @@ fn derive_dispose_impl(input: DeriveInput) -> Result<TokenStream> {
         Data::Struct(s) => derive_dispose_struct(span, default_mode, s),
         Data::Enum(e) => derive_dispose_enum(span, default_mode, e),
         Data::Union(_) => {
-            span.unwrap()
-                .error("Cannot derive Dispose on a union.")
-                .emit();
+            emit_error! { span.unwrap(), "Cannot derive Dispose on a union." }
 
             Err(())
         },
@@ -344,8 +355,11 @@ fn derive_dispose_struct(
     data: DataStruct,
 ) -> Result<TokenStream>
 {
-    fn field_name(span: Span, memb: Member) -> Ident {
-        Ident::new(&format!("__dispose_self_f{}", member_to_string(memb)), span)
+    fn field_name(span: Span, member: Member) -> Ident {
+        Ident::new(
+            &format!("__dispose_self_f{}", member_to_string(member)),
+            span,
+        )
     }
 
     let names = destructure_fields(span, &data.fields, field_name);
@@ -359,12 +373,12 @@ fn derive_dispose_struct(
 }
 
 fn derive_dispose_enum(span: Span, default_mode: FieldMode, data: DataEnum) -> Result<TokenStream> {
-    fn field_name(span: Span, memb: Member, var: impl AsRef<str>) -> Ident {
+    fn field_name(span: Span, member: Member, var: impl AsRef<str>) -> Ident {
         Ident::new(
             &format!(
                 "__dispose_self_v{}_f{}",
                 var.as_ref(),
-                member_to_string(memb),
+                member_to_string(member),
             ),
             span,
         )

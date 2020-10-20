@@ -10,7 +10,7 @@ use super::DisposeWith;
 /// See [this page][examples] for example usage.
 ///
 /// [`Disposable`]: ./struct.Disposable.html
-/// [`dispose`]: ./trait.Dispose.html#tymethod.dispose
+/// [`dispose`]: ./trait.Dispose.html#method.dispose
 /// [examples]: ./index.html#examples
 pub trait Dispose {
     /// Consume self and deinitialize its contents.
@@ -29,9 +29,9 @@ where (W, T): Sized
     fn dispose(self) { self.1.dispose_with(self.0) }
 }
 
-/// A helper tratif for iterators with items implementing `Dispose`.
+/// A helper trait for iterators with items implementing `Dispose`.
 ///
-/// This trait exists mainly because of the stringency of Rust's trait solver &mdash; implmenting
+/// This trait exists mainly because of the stringency of Rust's trait solver &mdash; implementing
 /// `Dispose` for all `I: IntoIterator` with `I::Item: Dispose` causes conflicts with the other
 /// blanket implementations of `Dispose`, so this trait serves as a replacement.
 ///

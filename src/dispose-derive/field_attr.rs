@@ -1,4 +1,5 @@
 use super::WithVal;
+use proc_macro_error::emit_error;
 use syn::{
     ext::IdentExt,
     parenthesized,
@@ -87,22 +88,19 @@ pub fn parse_field_attrs<I: IntoIterator<Item = Attribute>>(
         let span = attr.span();
 
         if attr.style != AttrStyle::Outer {
-            span.unwrap().error("Unexpected inner attribute").emit();
+            emit_error! { span.unwrap(), "Unexpected inner attribute" };
         }
 
         if attr.path.is_ident("dispose") {
             if n > 0 {
-                span.unwrap().error("Duplicate #[dispose] attribute").emit();
+                emit_error! { span.unwrap(), "Duplicate #[dispose] attribute" };
 
                 ret = Err(ParseError::new(span, "Duplicate #[dispose] attribute"));
             } else {
                 ret = match Parser::parse2(FieldAttr::parse, attr.tokens) {
                     Ok(a) => Ok(Some(a)),
                     Err(e) => {
-                        e.span()
-                            .unwrap()
-                            .error(format!("Failed to parse #[dispose] attribute: {}", e))
-                            .emit();
+                        emit_error! { span.unwrap(), "Failed to parse #[dispose] attribute: {}", e }
 
                         Err(e)
                     },

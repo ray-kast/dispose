@@ -33,12 +33,12 @@ use super::Disposable;
 ///     let uh_oh = Err(())?; // Pretend this was a function that failed
 ///
 ///     println!("You can't see me: {:?}", uh_oh);
-/// 
+///
 ///     Ok(())
 /// }
-/// 
+///
 /// println!("hi");
-/// 
+///
 /// tryme().map_err(|()| println!("ERROR: Something went wrong.")).unwrap_err()
 ///
 /// // This prints the following:

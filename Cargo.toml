@@ -1,6 +1,5 @@
 [workspace]
 members = [
-  "src/cooler",
   "src/dispose",
   "src/dispose-derive",
 ]
