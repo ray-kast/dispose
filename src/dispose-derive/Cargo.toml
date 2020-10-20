@@ -30,4 +30,5 @@ syn = { version = "1.0.31", features = ["derive", "extra-traits", "fold", "full"
 # Used in doctests:
 gfx-hal = "0.6.0"
 gfx-backend-empty = "0.6.0"
-dispose = { version = "=0.2.1", path = "../dispose" }
+dispose = { version = "0.2", path = "../dispose" }
+
