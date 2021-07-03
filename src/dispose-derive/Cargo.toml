@@ -1,6 +1,6 @@
 [package]
 name = "dispose-derive"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["rookie1024 <rookie1286@gmail.com>"]
 edition = "2018"
 description = "Derive macro for the dispose crate."
@@ -8,7 +8,7 @@ documentation = "https://docs.rs/dispose-derive/"
 # readme = TODO
 # homepage = TODO
 repository = "https://github.com/rookie1024/dispose"
-license = "AGPL-3.0-or-later"
+license = "MIT OR Apache-2.0"
 # license-file =
 keywords = ["linear", "dispose", "resource", "drop", "derive"]
 categories = ["rust-patterns"]
@@ -30,5 +30,5 @@ syn = { version = "1.0.31", features = ["derive", "extra-traits", "fold", "full"
 # Used in doctests:
 gfx-hal = "0.6.0"
 gfx-backend-empty = "0.6.0"
-dispose = { version = "0.2", path = "../dispose" }
+dispose = { version = "0.3", path = "../dispose" }
 
