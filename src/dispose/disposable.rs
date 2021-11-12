@@ -1,14 +1,16 @@
-use super::Dispose;
 use std::{
     borrow::{Borrow, BorrowMut},
     mem::{forget, ManuallyDrop},
     ops::{Deref, DerefMut},
 };
 
-/// Wrapper for values implementing [`Dispose`] that provides a `Drop` implementation.
-///
-/// This struct will automatically consume its contents on drop using the provided [`Dispose`]
+use super::Dispose;
+
+/// Wrapper for values implementing [`Dispose`] that provides a `Drop`
 /// implementation.
+///
+/// This struct will automatically consume its contents on drop using the
+/// provided [`Dispose`] implementation.
 ///
 /// See [this page][examples] for example usage.
 ///
@@ -25,12 +27,14 @@ impl<T: Dispose> Disposable<T> {
     ///
     /// # Safety
     ///
-    /// It is up to the user to ensure the value does not fall out of scope without being consumed.
+    /// It is up to the user to ensure the value does not fall out of scope
+    /// without being consumed.
     ///
-    /// The value can be safely re-inserted into a `Disposable` using `Disposable::new` to restore
-    /// safe drop behavior, and it is recommended that the value is held by some container which
-    /// consumes it on drop at all times.  The intended use case for this function is transferring
-    /// the value from one container to the other.
+    /// The value can be safely re-inserted into a `Disposable` using
+    /// `Disposable::new` to restore safe drop behavior, and it is
+    /// recommended that the value is held by some container which
+    /// consumes it on drop at all times.  The intended use case for this
+    /// function is transferring the value from one container to the other.
     pub unsafe fn leak(mut this: Self) -> T {
         let inner = ManuallyDrop::take(&mut this.0);
         forget(this);

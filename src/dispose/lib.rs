@@ -1,19 +1,23 @@
 #![warn(missing_docs, clippy::all, clippy::pedantic, clippy::cargo)]
 #![deny(broken_intra_doc_links, missing_debug_implementations)]
 
-//! A small crate for handling resources that must be consumed at the end of their lifetime.
+//! A small crate for handling resources that must be consumed at the end of
+//! their lifetime.
 //!
-//! Since Rust's type system is affine rather than linear, `Drop::drop` mutably borrows `self`,
-//! rather than consuming it.  For the most part, this is fine, but for some cases (such as working
-//! with the crate `gfx_hal`) resources must be consumed on drop.  This crate and the
-//! `dispose_derive` crate serve to cover the typical boilerplate for such cases by managing the
-//! `ManuallyDrop` wrapper for you. (See the [`Dispose`] derive macro for more info on that)
+//! Since Rust's type system is affine rather than linear, `Drop::drop` mutably
+//! borrows `self`, rather than consuming it.  For the most part, this is fine,
+//! but for some cases (such as working with the crate `gfx_hal`) resources must
+//! be consumed on drop.  This crate and the `dispose_derive` crate serve to
+//! cover the typical boilerplate for such cases by managing the `ManuallyDrop`
+//! wrapper for you. (See the [`Dispose`] derive macro for more info on that)
 //!
-//! As a bonus, this crate makes it easy to defer the execution of an `FnOnce` closure to the end
-//! of a scope, which can be done using the [`defer`] function.
+//! As a bonus, this crate makes it easy to defer the execution of an `FnOnce`
+//! closure to the end of a scope, which can be done using the [`defer`]
+//! function.
 //!
-//! **NOTE:** The `Dispose` trait does _not_ provide a `Drop` impl by itself.  For that, a value
-//! implementing `Dispose` must be wrapped in a [`Disposable`] struct.
+//! **NOTE:** The `Dispose` trait does _not_ provide a `Drop` impl by itself.
+//! For that, a value implementing `Dispose` must be wrapped in a [`Disposable`]
+//! struct.
 //!
 //! # Examples
 //!
@@ -31,9 +35,10 @@
 //! } // prints "Goodbye, world!"
 //! ```
 //!
-//! As a design consideration, values implementing `Dispose` should _always_ be returned wrapped in
-//! `Disposable` or any other wrapper properly implementing `Drop`.  `Disposable` is recommended as
-//! it contains an unsafe [`leak`] function to retrieve the inner value, if necessary.
+//! As a design consideration, values implementing `Dispose` should _always_ be
+//! returned wrapped in `Disposable` or any other wrapper properly implementing
+//! `Drop`.  `Disposable` is recommended as it contains an unsafe [`leak`]
+//! function to retrieve the inner value, if necessary.
 //!
 //! ```
 //! use dispose::{Dispose, Disposable};
@@ -67,26 +72,30 @@
 //! } // .dispose() was not called - data has been leaked!
 //! ```
 //!
-//! (My lawyers have advised me to note that the above example is not cryptographically secure.
-//! Please do not clean up secure memory by simply setting it to zero.)
+//! (My lawyers have advised me to note that the above example is not
+//! cryptographically secure. Please do not clean up secure memory by simply
+//! setting it to zero.)
 //!
 //! [`defer`]: ./fn.defer.html
 //! [`Disposable`]: ./struct.Disposable.html
 //! [`leak`]: ./struct.Disposable.html#method.leak
 //! [`Dispose`]: ./derive.Dispose.html
 
+mod abort;
 mod defer;
 mod disposable;
 mod dispose;
 mod dispose_with;
 
-pub use crate::{defer::*, disposable::*, dispose::*, dispose_with::*};
 pub use dispose_derive::*;
+
+pub use crate::{abort::*, defer::*, disposable::*, dispose::*, dispose_with::*};
 
 /// Contains all the basic traits and derive macros exported by this crate.
 pub mod prelude {
     #[doc(no_inline)]
-    pub use super::{Dispose, DisposeWith};
-    #[doc(no_inline)]
     pub use dispose_derive::*;
+
+    #[doc(no_inline)]
+    pub use super::{Dispose, DisposeWith};
 }

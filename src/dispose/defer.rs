@@ -2,8 +2,9 @@ use super::Disposable;
 
 /// Defer an action until the end of a lexical scope.
 ///
-/// This function returns a value that calls the provided closure when dropped, resulting in
-/// functionality akin to `try...finally` blocks or Swift's `defer` blocks and Go's `defer func`.
+/// This function returns a value that calls the provided closure when dropped,
+/// resulting in functionality akin to `try...finally` blocks or Swift's `defer`
+/// blocks and Go's `defer func`.
 ///
 /// # Examples
 ///
@@ -48,12 +49,12 @@ use super::Disposable;
 /// ```
 pub fn defer<F: FnOnce()>(f: F) -> Disposable<F> { f.into() }
 
-/// Defer an action until the end of a lexical scope, passing the provided argument; similar to
-/// [`defer`].
+/// Defer an action until the end of a lexical scope, passing the provided
+/// argument; similar to [`defer`].
 ///
-/// This function is mainly provided for completeness, and is less useful than using [`FnOnce(W)`
-/// as `DisposeWith<W>`][`FnOnce(W)`] for providing a struct with dynamic teardown logic with a
-/// provided value.
+/// This function is mainly provided for completeness, and is less useful than
+/// using [`FnOnce(W)` as `DisposeWith<W>`][`FnOnce(W)`] for providing a struct
+/// with dynamic teardown logic with a provided value.
 ///
 /// [`defer`]: ./fn.defer.html
 /// [`FnOnce(W)`]: ./trait.DisposeWith.html#impl-DisposeWith<W>

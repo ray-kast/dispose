@@ -1,11 +1,11 @@
 use super::DisposeWith;
 
-/// A trait representing a standard "dispose" method for consuming an object at the end of its
-/// scope.
+/// A trait representing a standard "dispose" method for consuming an object at
+/// the end of its scope.
 ///
-/// The typical use case of this trait is for encapsulating objects in [`Disposable`] wrappers,
-/// which will automatically call [`dispose`] on drop, but it is perfectly acceptable to call
-/// [`dispose`] by itself.
+/// The typical use case of this trait is for encapsulating objects in
+/// [`Disposable`] wrappers, which will automatically call [`dispose`] on drop,
+/// but it is perfectly acceptable to call [`dispose`] by itself.
 ///
 /// See [this page][examples] for example usage.
 ///
@@ -31,12 +31,13 @@ where (W, T): Sized
 
 /// A helper trait for iterators with items implementing `Dispose`.
 ///
-/// This trait exists mainly because of the stringency of Rust's trait solver &mdash; implementing
-/// `Dispose` for all `I: IntoIterator` with `I::Item: Dispose` causes conflicts with the other
-/// blanket implementations of `Dispose`, so this trait serves as a replacement.
+/// This trait exists mainly because of the stringency of Rust's trait solver
+/// &mdash; implementing `Dispose` for all `I: IntoIterator` with `I::Item:
+/// Dispose` causes conflicts with the other blanket implementations of
+/// `Dispose`, so this trait serves as a replacement.
 ///
-/// Several types with `DisposeIterator` implementations (such as [`Vec<T>`]) have dedicated
-/// `Dispose` implementations for convenience.
+/// Several types with `DisposeIterator` implementations (such as [`Vec<T>`])
+/// have dedicated `Dispose` implementations for convenience.
 pub trait DisposeIterator {
     /// Dispose all items in the iterator, consuming it.
     fn dispose_iter(self);

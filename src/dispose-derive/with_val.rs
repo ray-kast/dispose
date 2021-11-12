@@ -31,12 +31,13 @@ impl<F: Fn(Span, Member) -> Ident> Fold for ExpandSelf<F> {
                     qself: None,
                     path: (self.0)(span, f.member).into(),
                 })
-            }
+            },
             e => syn::fold::fold_expr(self, e),
         }
     }
 
-    // For hygiene reasons.  Any item will clear the meaning of self, so don't descend into them.
+    // For hygiene reasons.  Any item will clear the meaning of self, so don't
+    // descend into them.
     fn fold_item(&mut self, item: Item) -> Item { item }
 }
 

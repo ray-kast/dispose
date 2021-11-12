@@ -3,8 +3,8 @@
 
 //! Derive macro for the `dispose` crate.
 //!
-//! This crate provides a derive macro for quickly deriving `Dispose` on types where the values can
-//! be consumed relatively trivially.
+//! This crate provides a derive macro for quickly deriving `Dispose` on types
+//! where the values can be consumed relatively trivially.
 
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::{Span, TokenStream};
@@ -25,27 +25,30 @@ use with_val::*;
 
 type Result<T, E = ()> = std::result::Result<T, E>;
 
-/// Add trivial `Dispose` support to a struct or enum where the contained values implement
-/// `Dispose` or `DisposeWith<W>`.
+/// Add trivial `Dispose` support to a struct or enum where the contained values
+/// implement `Dispose` or `DisposeWith<W>`.
 ///
-/// This macro is designed to reduce the boilerplate for writing custom containers housing
-/// `Dispose` or `DisposeWith` resources.
+/// This macro is designed to reduce the boilerplate for writing custom
+/// containers housing `Dispose` or `DisposeWith` resources.
 ///
 /// # The `#[dispose]` attribute
 ///
-/// The `#[dispose]` attribute available to types deriving `Dispose` provides four options for
-/// decorating fields: `ignore`, `with`, `iter`, and `iter_with`.
+/// The `#[dispose]` attribute available to types deriving `Dispose` provides
+/// four options for decorating fields: `ignore`, `with`, `iter`, and
+/// `iter_with`.
 ///
-/// - `#[dispose(ignore)]` is the simplest option.  It disables generating a `.dispose()` call for
-///   the field it decorates.
-/// - `#[dispose(with = <expr>)]` changes the `.dispose()` call to a `.dispose_with(...)` call that
-///   is provided with a value determined by `<expr>`.  `expr` can take one of two forms: `.memb`
-///   for a member access into `self`, or any other Rust expression, which will be token-pasted
-///   into the `dispose_with` call as-is.
-/// - `#[dispose(iter)]` changes the `.dispose()` call to `.dispose_iter()`, for types that
-///   implement `DisposeIterator` rather than `Dispose`.
-/// - `#[dispose(iter_with = <expr>)]` changes the `.dispose()` call to `.dispose_iter_with(...)`,
-///   behaving similarly to both `#[dispose(iter)]` and `#[dispose(with = <expr>)]`.
+/// - `#[dispose(ignore)]` is the simplest option.  It disables generating a
+///   `.dispose()` call for the field it decorates.
+/// - `#[dispose(with = <expr>)]` changes the `.dispose()` call to a
+///   `.dispose_with(...)` call that is provided with a value determined by
+///   `<expr>`.  `expr` can take one of two forms: `.memb` for a member access
+///   into `self`, or any other Rust expression, which will be token-pasted into
+///   the `dispose_with` call as-is.
+/// - `#[dispose(iter)]` changes the `.dispose()` call to `.dispose_iter()`, for
+///   types that implement `DisposeIterator` rather than `Dispose`.
+/// - `#[dispose(iter_with = <expr>)]` changes the `.dispose()` call to
+///   `.dispose_iter_with(...)`, behaving similarly to both `#[dispose(iter)]`
+///   and `#[dispose(with = <expr>)]`.
 ///
 /// # Examples
 ///
@@ -261,8 +264,7 @@ fn dispose_fields(
     default_mode: FieldMode,
     fields: Fields,
     field_name: impl Fn(Span, Member) -> Ident + Copy,
-) -> Result<TokenStream>
-{
+) -> Result<TokenStream> {
     let handle_field = |(id, field): (usize, Field)| {
         let span = field.span();
         let name = field_name(field.span(), field_to_member(id as u32, &field));
@@ -323,8 +325,7 @@ fn destructure_fields(
     span: Span,
     fields: &Fields,
     field_name: impl Fn(Span, Member) -> Ident,
-) -> TokenStream
-{
+) -> TokenStream {
     match fields {
         Fields::Named(n) => {
             let names = n.named.iter().enumerate().map(|(i, f)| {
@@ -353,8 +354,7 @@ fn derive_dispose_struct(
     span: Span,
     default_mode: FieldMode,
     data: DataStruct,
-) -> Result<TokenStream>
-{
+) -> Result<TokenStream> {
     fn field_name(span: Span, member: Member) -> Ident {
         Ident::new(
             &format!("__dispose_self_f{}", member_to_string(member)),

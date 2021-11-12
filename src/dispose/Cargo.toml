@@ -1,6 +1,6 @@
 [package]
 name = "dispose"
-version = "0.3.1"
+version = "0.4.0"
 authors = ["rookie1024 <rookie1286@gmail.com>"]
 edition = "2018"
 description = "A simple wrapper for values that must be consumed on drop."
@@ -11,7 +11,7 @@ repository = "https://github.com/rookie1024/dispose"
 license = "MIT OR Apache-2.0"
 # license-file =
 keywords = ["linear", "dispose", "resource", "drop", "derive"]
-categories = ["rust-patterns"]
+categories = ["memory-management", "rust-patterns"]
 
 # TODO: make this no-std?
 

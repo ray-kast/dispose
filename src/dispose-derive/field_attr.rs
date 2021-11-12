@@ -1,4 +1,3 @@
-use super::WithVal;
 use proc_macro_error::emit_error;
 use syn::{
     ext::IdentExt,
@@ -7,6 +6,8 @@ use syn::{
     spanned::Spanned,
     token, AttrStyle, Attribute, Ident, Token,
 };
+
+use super::WithVal;
 
 #[derive(Debug, Clone)]
 pub struct FieldAttr {
@@ -64,7 +65,7 @@ impl Parse for FieldAttr {
                         return Err(ParseError::new(
                             i.span(),
                             "expected `ignore`, `with`, `iter`, or `iter_with`",
-                        ))
+                        ));
                     },
                 };
 

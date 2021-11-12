@@ -11,7 +11,7 @@ repository = "https://github.com/rookie1024/dispose"
 license = "MIT OR Apache-2.0"
 # license-file =
 keywords = ["linear", "dispose", "resource", "drop", "derive"]
-categories = ["rust-patterns"]
+categories = ["memory-management", "rust-patterns"]
 
 # TODO: make this no-std?
 
@@ -30,5 +30,5 @@ syn = { version = "1.0.31", features = ["derive", "extra-traits", "fold", "full"
 # Used in doctests:
 gfx-hal = "0.6.0"
 gfx-backend-empty = "0.6.0"
-dispose = { version = "0.3", path = "../dispose" }
+dispose = { version = "0.4", path = "../dispose" }
 
