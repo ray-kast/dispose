@@ -1,5 +1,14 @@
-#![warn(missing_docs, clippy::all, clippy::pedantic, clippy::cargo)]
-#![deny(broken_intra_doc_links, missing_debug_implementations)]
+#![deny(
+    clippy::disallowed_methods,
+    clippy::suspicious,
+    clippy::style,
+    clippy::clone_on_ref_ptr,
+    rustdoc::all,
+    missing_debug_implementations,
+    missing_copy_implementations
+)]
+#![warn(clippy::pedantic, missing_docs)]
+#![allow(clippy::module_name_repetitions)]
 
 //! A small crate for handling resources that must be consumed at the end of
 //! their lifetime.

@@ -18,12 +18,7 @@ struct ExpandSelf<F: Fn(Span, Member) -> Ident>(F);
 impl<F: Fn(Span, Member) -> Ident> Fold for ExpandSelf<F> {
     fn fold_expr(&mut self, expr: Expr) -> Expr {
         match expr {
-            Expr::Field(f)
-                if match &*f.base {
-                    Expr::Path(p) if p.path.is_ident("self") => true,
-                    _ => false,
-                } =>
-            {
+            Expr::Field(f) if matches!(&*f.base, Expr::Path(p) if p.path.is_ident("self")) => {
                 let span = f.span();
 
                 Expr::Path(ExprPath {

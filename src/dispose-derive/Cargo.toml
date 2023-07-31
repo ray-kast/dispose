@@ -1,8 +1,8 @@
 [package]
 name = "dispose-derive"
-version = "0.3.0"
-authors = ["rookie1024 <rookie1286@gmail.com>"]
-edition = "2018"
+version = "0.4.0"
+authors = ["raykast <me@ryan-s.net>"]
+edition = "2021"
 description = "Derive macro for the dispose crate."
 documentation = "https://docs.rs/dispose-derive/"
 # readme = TODO
@@ -21,14 +21,14 @@ proc-macro = true
 path = "lib.rs"
 
 [dependencies]
-proc-macro2 = "1.0.18"
+proc-macro2 = "1.0.66"
 proc-macro-error = "1.0.4"
-quote = "1.0.7"
-syn = { version = "1.0.31", features = ["derive", "extra-traits", "fold", "full"] }
+quote = "1.0.32"
+syn = { version = "2.0.28", features = ["derive", "extra-traits", "fold", "full"] }
 
 [dev-dependencies]
 # Used in doctests:
 gfx-hal = "0.6.0"
 gfx-backend-empty = "0.6.0"
-dispose = { version = "0.4", path = "../dispose" }
+dispose = { version = "0", path = "../dispose" }
 

@@ -12,6 +12,7 @@ use crate::{Disposable, Dispose};
 ///
 /// [`abort_on_panic`]: ./function.abort_on_panic.html
 #[derive(Debug)]
+#[allow(missing_copy_implementations)] // Construction is trivial, copying would be dangerous
 pub struct AbortCanary(());
 
 impl AbortCanary {

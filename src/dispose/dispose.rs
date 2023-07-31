@@ -48,7 +48,7 @@ where I::Item: Dispose
 {
     fn dispose_iter(self) {
         for el in self {
-            el.dispose()
+            el.dispose();
         }
     }
 }

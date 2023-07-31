@@ -58,4 +58,4 @@ pub fn defer<F: FnOnce()>(f: F) -> Disposable<F> { f.into() }
 ///
 /// [`defer`]: ./fn.defer.html
 /// [`FnOnce(W)`]: ./trait.DisposeWith.html#impl-DisposeWith<W>
-pub fn defer_with<W, F: FnOnce(W)>(with: W, f: F) -> Disposable<(W, F)> { (with, f.into()).into() }
+pub fn defer_with<W, F: FnOnce(W)>(with: W, f: F) -> Disposable<(W, F)> { (with, f).into() }

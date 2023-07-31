@@ -1,5 +1,14 @@
-#![warn(missing_docs, clippy::all, clippy::pedantic, clippy::cargo)]
-#![deny(broken_intra_doc_links, missing_debug_implementations)]
+#![deny(
+    clippy::disallowed_methods,
+    clippy::suspicious,
+    clippy::style,
+    clippy::clone_on_ref_ptr,
+    rustdoc::all,
+    missing_debug_implementations,
+    missing_copy_implementations
+)]
+#![warn(clippy::pedantic, missing_docs)]
+#![allow(clippy::module_name_repetitions)]
 
 //! Derive macro for the `dispose` crate.
 //!
@@ -19,8 +28,8 @@ mod field_attr;
 mod with_val;
 // mod item_attr;
 
-use field_attr::*;
-use with_val::*;
+use field_attr::{parse_field_attrs, FieldMode};
+use with_val::WithVal;
 // use item_attr::*;
 
 type Result<T, E = ()> = std::result::Result<T, E>;
@@ -207,11 +216,13 @@ pub fn derive_dispose(item: TokenStream1) -> TokenStream1 {
     }
 }
 
-fn field_to_member(index: u32, field: &Field) -> Member {
+fn field_to_member(index: usize, field: &Field) -> Member {
     match &field.ident {
         Some(n) => Member::Named(n.clone()),
         None => Member::Unnamed(Index {
-            index,
+            index: index
+                .try_into()
+                .unwrap_or_else(|e| panic!("Could not convert field index {index}: {e}")),
             span: field.span(),
         }),
     }
@@ -229,7 +240,7 @@ fn derive_dispose_impl(input: DeriveInput) -> Result<TokenStream> {
     let name = input.ident;
 
     for attr in input.attrs {
-        if attr.path.is_ident("dispose") {
+        if attr.path().is_ident("dispose") {
             emit_error! { span.unwrap(), "Unexpected #[dispose] attribute." };
         }
     }
@@ -240,8 +251,8 @@ fn derive_dispose_impl(input: DeriveInput) -> Result<TokenStream> {
     let default_mode = FieldMode::Dispose { is_iter: false };
 
     let fn_body = match input.data {
-        Data::Struct(s) => derive_dispose_struct(span, default_mode, s),
-        Data::Enum(e) => derive_dispose_enum(span, default_mode, e),
+        Data::Struct(s) => derive_dispose_struct(span, &default_mode, s),
+        Data::Enum(e) => derive_dispose_enum(span, &default_mode, e),
         Data::Union(_) => {
             emit_error! { span.unwrap(), "Cannot derive Dispose on a union." }
 
@@ -261,13 +272,13 @@ fn derive_dispose_impl(input: DeriveInput) -> Result<TokenStream> {
 
 fn dispose_fields(
     span: Span,
-    default_mode: FieldMode,
+    default_mode: &FieldMode,
     fields: Fields,
     field_name: impl Fn(Span, Member) -> Ident + Copy,
 ) -> Result<TokenStream> {
     let handle_field = |(id, field): (usize, Field)| {
         let span = field.span();
-        let name = field_name(field.span(), field_to_member(id as u32, &field));
+        let name = field_name(span, field_to_member(id, &field));
 
         let attr = parse_field_attrs(field.attrs).map_err(|_| ())?;
         let ty = field.ty;
@@ -329,7 +340,7 @@ fn destructure_fields(
     match fields {
         Fields::Named(n) => {
             let names = n.named.iter().enumerate().map(|(i, f)| {
-                let var = field_name(f.span(), field_to_member(i as u32, &f));
+                let var = field_name(f.span(), field_to_member(i, f));
                 let ident = f.ident.clone();
 
                 quote_spanned! { f.span() => #ident: #var }
@@ -342,7 +353,7 @@ fn destructure_fields(
                 .unnamed
                 .iter()
                 .enumerate()
-                .map(|(i, f)| field_name(f.span(), field_to_member(i as u32, f)));
+                .map(|(i, f)| field_name(f.span(), field_to_member(i, f)));
 
             quote_spanned! { span => ( #(#names),* ) }
         },
@@ -352,7 +363,7 @@ fn destructure_fields(
 
 fn derive_dispose_struct(
     span: Span,
-    default_mode: FieldMode,
+    default_mode: &FieldMode,
     data: DataStruct,
 ) -> Result<TokenStream> {
     fn field_name(span: Span, member: Member) -> Ident {
@@ -372,7 +383,7 @@ fn derive_dispose_struct(
     })
 }
 
-fn derive_dispose_enum(span: Span, default_mode: FieldMode, data: DataEnum) -> Result<TokenStream> {
+fn derive_dispose_enum(span: Span, default_mode: &FieldMode, data: DataEnum) -> Result<TokenStream> {
     fn field_name(span: Span, member: Member, var: impl AsRef<str>) -> Ident {
         Ident::new(
             &format!(
@@ -392,7 +403,7 @@ fn derive_dispose_enum(span: Span, default_mode: FieldMode, data: DataEnum) -> R
             let name_str = name.to_string();
 
             let names = destructure_fields(span, &var.fields, |i, f| field_name(i, f, &name_str));
-            let fields = dispose_fields(span, default_mode.clone(), var.fields, |i, f| {
+            let fields = dispose_fields(span, default_mode, var.fields, |i, f| {
                 field_name(i, f, &name_str)
             })?;
 

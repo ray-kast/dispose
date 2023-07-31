@@ -1,4 +1,5 @@
 use proc_macro_error::emit_error;
+use quote::ToTokens;
 use syn::{
     ext::IdentExt,
     parenthesized,
@@ -9,7 +10,7 @@ use syn::{
 
 use super::WithVal;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct FieldAttr {
     pub mode: FieldMode,
 }
@@ -19,14 +20,6 @@ pub enum FieldMode {
     Dispose { is_iter: bool },
     DisposeWith { is_iter: bool, with: WithVal },
     Ignore,
-}
-
-impl Default for FieldAttr {
-    fn default() -> Self {
-        Self {
-            mode: FieldMode::default(),
-        }
-    }
 }
 
 impl Default for FieldMode {
@@ -92,13 +85,14 @@ pub fn parse_field_attrs<I: IntoIterator<Item = Attribute>>(
             emit_error! { span.unwrap(), "Unexpected inner attribute" };
         }
 
-        if attr.path.is_ident("dispose") {
+        if attr.path().is_ident("dispose") {
             if n > 0 {
                 emit_error! { span.unwrap(), "Duplicate #[dispose] attribute" };
 
                 ret = Err(ParseError::new(span, "Duplicate #[dispose] attribute"));
             } else {
-                ret = match Parser::parse2(FieldAttr::parse, attr.tokens) {
+                // TODO: using ToTokens is stupid and you know it
+                ret = match Parser::parse2(FieldAttr::parse, attr.meta.to_token_stream()) {
                     Ok(a) => Ok(Some(a)),
                     Err(e) => {
                         emit_error! { span.unwrap(), "Failed to parse #[dispose] attribute: {}", e }
