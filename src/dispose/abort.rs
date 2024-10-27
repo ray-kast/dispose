@@ -85,7 +85,7 @@ mod test {
 
     // This should NOT panic
     #[test]
-    fn sanity_check_aop() { catch_unwind(|| panic!()); }
+    fn sanity_check_aop() { catch_unwind(|| panic!()).ok(); }
 
     // // This should panic
     // #[test]

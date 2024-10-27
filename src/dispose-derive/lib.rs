@@ -17,7 +17,6 @@
 
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::{Span, TokenStream};
-use proc_macro_error::{emit_error, proc_macro_error};
 use quote::quote_spanned;
 use syn::{
     parse_macro_input, spanned::Spanned, Data, DataEnum, DataStruct, DeriveInput, Field, Fields,
@@ -207,12 +206,12 @@ type Result<T, E = ()> = std::result::Result<T, E>;
 /// // Draw cool things with the buffers here...
 /// # let _ = (buf, bufs); // Silence any unused warnings.
 /// ```
-#[proc_macro_error]
 #[proc_macro_derive(Dispose, attributes(dispose))]
 pub fn derive_dispose(item: TokenStream1) -> TokenStream1 {
-    match derive_dispose_impl(parse_macro_input!(item)) {
-        Ok(s) => s.into(),
-        Err(()) => TokenStream1::new(),
+    let mut diag = TokenStream::new();
+    match derive_dispose_impl(parse_macro_input!(item), &mut diag) {
+        Ok(s) => [diag, s].into_iter().collect::<TokenStream>().into(),
+        Err(()) => diag.into(),
     }
 }
 
@@ -235,13 +234,16 @@ fn member_to_string(member: Member) -> String {
     }
 }
 
-fn derive_dispose_impl(input: DeriveInput) -> Result<TokenStream> {
+fn derive_dispose_impl(input: DeriveInput, diag: &mut TokenStream) -> Result<TokenStream> {
     let span = input.span();
     let name = input.ident;
 
     for attr in input.attrs {
         if attr.path().is_ident("dispose") {
-            emit_error! { span.unwrap(), "Unexpected #[dispose] attribute." };
+            diag.extend(
+                syn::Error::new(span.unwrap().into(), "Unexpected #[dispose] attribute")
+                    .to_compile_error(),
+            );
         }
     }
 
@@ -251,10 +253,13 @@ fn derive_dispose_impl(input: DeriveInput) -> Result<TokenStream> {
     let default_mode = FieldMode::Dispose { is_iter: false };
 
     let fn_body = match input.data {
-        Data::Struct(s) => derive_dispose_struct(span, &default_mode, s),
-        Data::Enum(e) => derive_dispose_enum(span, &default_mode, e),
+        Data::Struct(s) => derive_dispose_struct(span, &default_mode, s, diag),
+        Data::Enum(e) => derive_dispose_enum(span, &default_mode, e, diag),
         Data::Union(_) => {
-            emit_error! { span.unwrap(), "Cannot derive Dispose on a union." }
+            diag.extend(
+                syn::Error::new(span.unwrap().into(), "Cannot derive Dispose on a union.")
+                    .to_compile_error(),
+            );
 
             Err(())
         },
@@ -274,13 +279,14 @@ fn dispose_fields(
     span: Span,
     default_mode: &FieldMode,
     fields: Fields,
+    diag: &mut TokenStream,
     field_name: impl Fn(Span, Member) -> Ident + Copy,
 ) -> Result<TokenStream> {
     let handle_field = |(id, field): (usize, Field)| {
         let span = field.span();
         let name = field_name(span, field_to_member(id, &field));
 
-        let attr = parse_field_attrs(field.attrs).map_err(|_| ())?;
+        let attr = parse_field_attrs(field.attrs, diag).map_err(|_| ())?;
         let ty = field.ty;
 
         Ok(match attr.map_or(default_mode.clone(), |a| a.mode) {
@@ -365,6 +371,7 @@ fn derive_dispose_struct(
     span: Span,
     default_mode: &FieldMode,
     data: DataStruct,
+    diag: &mut TokenStream,
 ) -> Result<TokenStream> {
     fn field_name(span: Span, member: Member) -> Ident {
         Ident::new(
@@ -374,7 +381,7 @@ fn derive_dispose_struct(
     }
 
     let names = destructure_fields(span, &data.fields, field_name);
-    let fields = dispose_fields(span, default_mode, data.fields, field_name)?;
+    let fields = dispose_fields(span, default_mode, data.fields, diag, field_name)?;
 
     Ok(quote_spanned! { span =>
         let Self #names = self;
@@ -383,7 +390,12 @@ fn derive_dispose_struct(
     })
 }
 
-fn derive_dispose_enum(span: Span, default_mode: &FieldMode, data: DataEnum) -> Result<TokenStream> {
+fn derive_dispose_enum(
+    span: Span,
+    default_mode: &FieldMode,
+    data: DataEnum,
+    diag: &mut TokenStream,
+) -> Result<TokenStream> {
     fn field_name(span: Span, member: Member, var: impl AsRef<str>) -> Ident {
         Ident::new(
             &format!(
@@ -403,7 +415,7 @@ fn derive_dispose_enum(span: Span, default_mode: &FieldMode, data: DataEnum) -> 
             let name_str = name.to_string();
 
             let names = destructure_fields(span, &var.fields, |i, f| field_name(i, f, &name_str));
-            let fields = dispose_fields(span, default_mode, var.fields, |i, f| {
+            let fields = dispose_fields(span, default_mode, var.fields, diag, |i, f| {
                 field_name(i, f, &name_str)
             })?;
 

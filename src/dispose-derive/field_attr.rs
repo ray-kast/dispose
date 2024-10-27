@@ -1,4 +1,4 @@
-use proc_macro_error::emit_error;
+use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
     ext::IdentExt,
@@ -74,6 +74,7 @@ impl Parse for FieldAttr {
 
 pub fn parse_field_attrs<I: IntoIterator<Item = Attribute>>(
     attrs: I,
+    diag: &mut TokenStream,
 ) -> ParseResult<Option<FieldAttr>> {
     let mut ret = Ok(None);
     let mut n = 0;
@@ -82,12 +83,18 @@ pub fn parse_field_attrs<I: IntoIterator<Item = Attribute>>(
         let span = attr.span();
 
         if attr.style != AttrStyle::Outer {
-            emit_error! { span.unwrap(), "Unexpected inner attribute" };
+            diag.extend(
+                syn::Error::new(span.unwrap().into(), "Unexpected inner attribute")
+                    .to_compile_error(),
+            );
         }
 
         if attr.path().is_ident("dispose") {
             if n > 0 {
-                emit_error! { span.unwrap(), "Duplicate #[dispose] attribute" };
+                diag.extend(
+                    syn::Error::new(span.unwrap().into(), "Duplicate #[dispose] attribute")
+                        .to_compile_error(),
+                );
 
                 ret = Err(ParseError::new(span, "Duplicate #[dispose] attribute"));
             } else {
@@ -95,7 +102,13 @@ pub fn parse_field_attrs<I: IntoIterator<Item = Attribute>>(
                 ret = match Parser::parse2(FieldAttr::parse, attr.meta.to_token_stream()) {
                     Ok(a) => Ok(Some(a)),
                     Err(e) => {
-                        emit_error! { span.unwrap(), "Failed to parse #[dispose] attribute: {}", e }
+                        diag.extend(
+                            syn::Error::new(
+                                span.unwrap().into(),
+                                format!("Failed to parse #[dispose] attribute: {e}"),
+                            )
+                            .to_compile_error(),
+                        );
 
                         Err(e)
                     },

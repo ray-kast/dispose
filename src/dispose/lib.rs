@@ -106,5 +106,5 @@ pub mod prelude {
     pub use dispose_derive::*;
 
     #[doc(no_inline)]
-    pub use super::{Dispose, DisposeWith};
+    pub use super::{Dispose as _, DisposeWith};
 }
