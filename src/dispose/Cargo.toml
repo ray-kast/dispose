@@ -1,13 +1,13 @@
 [package]
 name = "dispose"
-version = "0.5.1"
+version = "0.5.2"
 authors = ["raykast <me@june-s.net>"]
 edition = "2021"
 description = "A simple wrapper for values that must be consumed on drop."
 documentation = "https://docs.rs/dispose/"
-# readme = TODO
+readme = "../../README.md"
 # homepage = TODO
-repository = "https://github.com/rookie1024/dispose"
+repository = "https://github.com/ray-kast/dispose"
 license = "MIT OR Apache-2.0"
 # license-file =
 keywords = ["linear", "dispose", "resource", "drop", "derive"]
@@ -20,4 +20,4 @@ name = "dispose"
 path = "lib.rs"
 
 [dependencies]
-dispose-derive = { version = "0.4.1", path = "../dispose-derive" }
+dispose-derive = { version = "0.4.2", path = "../dispose-derive" }

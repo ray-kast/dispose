@@ -1,13 +1,13 @@
 [package]
 name = "dispose-derive"
-version = "0.4.1"
+version = "0.4.2"
 authors = ["raykast <me@june-s.net>"]
 edition = "2021"
 description = "Derive macro for the dispose crate."
 documentation = "https://docs.rs/dispose-derive/"
-# readme = TODO
+readme = "../../README.md"
 # homepage = TODO
-repository = "https://github.com/rookie1024/dispose"
+repository = "https://github.com/ray-kast/dispose"
 license = "MIT OR Apache-2.0"
 # license-file =
 keywords = ["linear", "dispose", "resource", "drop", "derive"]

@@ -16,14 +16,14 @@ checksum = "b365fabc795046672053e29c954733ec3b05e4be654ab130fe8f1f94d7051f35"
 
 [[package]]
 name = "dispose"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "dispose-derive",
 ]
 
 [[package]]
 name = "dispose-derive"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
  "dispose",
  "gfx-backend-empty",
